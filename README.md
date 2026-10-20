@@ -2,7 +2,7 @@
 
 A minimal, read-only recipe site. It's a single static page that loads recipes live from a Supabase database.
 
-**Live:** https://lschaer.github.io/recipe/
+**Live:** https://recipes.luciusschaerer.space
 
 ## How it works
 
@@ -48,4 +48,4 @@ Then open http://localhost:5173.
 
 ## Deploy
 
-GitHub Pages serves the `main` branch from the repository root. Every push to `main` goes live within about a minute.
+GitHub Pages serves the `main` branch from the repository root, on the custom domain set in `CNAME`. Every push to `main` goes live within about a minute.
