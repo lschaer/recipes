@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recipes</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none' stroke='%23a8572c' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 22h48a24 24 0 0 1-48 0z'/%3E%3Cpath d='M24 56h16'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #fafaf8;
+      --surface: #ffffff;
+      --text: #1c1c1a;
+      --muted: #77756f;
+      --line: #e8e6e1;
+      --accent: #a8572c;
+      --radius: 14px;
+      --sans: "Inter", system-ui, -apple-system, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141413;
+        --surface: #1c1c1a;
+        --text: #ecebe7;
+        --muted: #9a978f;
+        --line: #2c2b28;
+        --accent: #e0915f;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.6 var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; color: inherit; }
+
+    .wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 40px 0 28px;
+    }
+    .brand { font: 500 24px/1 var(--sans); letter-spacing: -0.03em; color: var(--muted); transition: color .15s; }
+    .brand:hover { color: var(--text); }
+    .brand i { font-style: normal; color: var(--accent); }
+
+    /* Search */
+    .search {
+      width: 100%; padding: 12px 16px; margin-bottom: 28px;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 999px; outline: none;
+    }
+    .search:focus { border-color: var(--muted); }
+
+    /* Grid */
+    .grid {
+      display: grid; gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      padding-bottom: 64px;
+    }
+    .card {
+      display: flex; flex-direction: column; gap: 14px;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 22px;
+      transition: border-color .15s, transform .15s;
+    }
+    .card:hover { border-color: var(--muted); transform: translateY(-2px); }
+    .icon { width: 44px; height: 44px; color: var(--accent); }
+    .icon img { width: 100%; height: 100%; display: block; }
+    .card h2 { font: 600 17px/1.3 var(--sans); letter-spacing: -0.01em; }
+    .card p {
+      color: var(--muted); font-size: 14px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+    .empty { color: var(--muted); text-align: center; padding: 64px 0; }
+
+    /* Detail */
+    .back { display: inline-block; color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+    .back:hover { color: var(--text); }
+    .detail { max-width: 720px; padding-bottom: 80px; }
+    .detail .icon { width: 64px; height: 64px; margin-bottom: 20px; }
+    .detail h1 { font: 600 clamp(28px, 5.5vw, 38px)/1.15 var(--sans); letter-spacing: -0.03em; }
+    .lede { color: var(--muted); font-size: 17px; margin-top: 12px; }
+    .intro { border-bottom: 1px solid var(--line); padding-bottom: 28px; margin-bottom: 40px; }
+
+    h3 { font: 600 18px/1.3 var(--sans); letter-spacing: -0.01em; margin-bottom: 16px; }
+    h4 { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 22px 0 6px; }
+    section + section { margin-top: 44px; }
+
+    .ingredients { list-style: none; }
+    .ingredients li {
+      display: grid; grid-template-columns: 96px 1fr; gap: 12px;
+      padding: 9px 0; border-bottom: 1px solid var(--line);
+    }
+    .qty { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .note { color: var(--muted); }
+
+    .steps { list-style: none; counter-reset: s; }
+    .steps li {
+      counter-increment: s; position: relative;
+      padding: 0 0 18px 32px;
+    }
+    .steps li::before {
+      content: counter(s); position: absolute; left: 0; top: 0;
+      font: 500 15px/1.6 var(--sans); color: var(--accent); font-variant-numeric: tabular-nums;
+    }
+    .notes { color: var(--muted); white-space: pre-line; }
+    .source { color: var(--accent); font-size: 14px; word-break: break-all; }
+    .source:hover { text-decoration: underline; }
+
+    @media (max-width: 520px) {
+      header { padding: 24px 0 18px; }
+      .ingredients li { grid-template-columns: 76px 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="app"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script>
+    const SUPABASE_URL = "https://ysrvbbecbqwiuthphnfk.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_8dt1fN6NAxlA3YvqjWqkxg_NeKhxay7";
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+
+    const app = document.getElementById("app");
+    let recipes = null;
+    let query = "";
+
+    // ---------- helpers ----------
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    // Icons are shown as <img>, so any script inside an SVG never runs.
+    // The SVGs use currentColor, which an <img> can't inherit, so swap in the accent colour first.
+    function iconImg(svg) {
+      if (!svg) return "";
+      const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+      const src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg.replaceAll("currentColor", accent));
+      return `<img src="${src}" alt="" />`;
+    }
+
+    // Only link plain web addresses (blocks javascript: and similar).
+    const safeUrl = (u) => /^https?:\/\//i.test(u || "") ? u : null;
+
+    const FRACTIONS = [[1/8,"⅛"],[1/4,"¼"],[1/3,"⅓"],[1/2,"½"],[2/3,"⅔"],[3/4,"¾"]];
+    function fmtAmount(n) {
+      if (n == null || isNaN(n)) return "";
+      const whole = Math.floor(n), frac = n - whole;
+      if (frac < 0.04) return String(whole);
+      if (frac > 0.96) return String(whole + 1);
+      const hit = FRACTIONS.find(([v]) => Math.abs(v - frac) < 0.04);
+      if (hit && n < 20) return (whole ? whole + " " : "") + hit[1];
+      return String(Math.round(n * 10) / 10);
+    }
+
+    // ---------- views ----------
+    function header() {
+      return `
+        <header>
+          <a class="brand" href="#">recipes<i>.</i></a>
+        </header>`;
+    }
+
+    async function loadRecipes() {
+      if (recipes) return recipes;
+      const { data, error } = await db
+        .from("recipes")
+        .select("id,title,description,icon_svg,created_at")
+        .eq("status", "processed")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (recipes = data);
+    }
+
+    async function renderList() {
+      app.innerHTML = header() + `<div class="empty">Loading…</div>`;
+      let list;
+      try { list = await loadRecipes(); }
+      catch (e) { app.querySelector(".empty").textContent = e.message; return; }
+
+      app.innerHTML = header() + `
+        <input class="search" id="q" type="search" placeholder="Search recipes" value="${esc(query)}" />
+        <div class="grid" id="grid"></div>`;
+
+      const grid = document.getElementById("grid");
+      const draw = () => {
+        const q = query.toLowerCase();
+        const shown = list.filter((r) =>
+          !q || (r.title || "").toLowerCase().includes(q) || (r.description || "").toLowerCase().includes(q));
+        grid.innerHTML = shown.length ? shown.map((r) => {
+          return `
+            <a class="card" href="#/r/${r.id}">
+              <div class="icon">${iconImg(r.icon_svg)}</div>
+              <h2>${esc(r.title || "Untitled")}</h2>
+              ${r.description ? `<p>${esc(r.description)}</p>` : ""}
+            </a>`;
+        }).join("") : `<div class="empty" style="grid-column:1/-1">No recipes found.</div>`;
+      };
+      const input = document.getElementById("q");
+      input.oninput = () => { query = input.value; draw(); };
+      draw();
+    }
+
+    async function renderDetail(id) {
+      app.innerHTML = header() + `<div class="empty">Loading…</div>`;
+      const { data: r, error } = await db
+        .from("recipes")
+        .select("id,title,description,notes,source_url,icon_svg, recipe_ingredients(*), recipe_steps(*)")
+        .eq("id", id)
+        .maybeSingle();
+      if (error || !r) {
+        app.querySelector(".empty").innerHTML = `${esc(error?.message || "Recipe not found.")} <a class="source" href="#">Back</a>`;
+        return;
+      }
+
+      const ingredients = [...r.recipe_ingredients].sort((a, b) => a.position - b.position);
+      const steps = [...r.recipe_steps].sort((a, b) => a.position - b.position);
+
+      app.innerHTML = header() + `
+        <article class="detail">
+          <a class="back" href="#">← All recipes</a>
+          <div class="intro">
+            <div class="icon">${iconImg(r.icon_svg)}</div>
+            <h1>${esc(r.title || "Untitled")}</h1>
+            ${r.description ? `<p class="lede">${esc(r.description)}</p>` : ""}
+          </div>
+          ${ingredients.length ? `<section><h3>Ingredients</h3><div id="ing"></div></section>` : ""}
+          ${steps.length ? `<section><h3>Method</h3><ol class="steps">${steps.map((s) => `<li>${esc(s.instruction)}</li>`).join("")}</ol></section>` : ""}
+          ${r.notes ? `<section><h3>Notes</h3><p class="notes">${esc(r.notes)}</p></section>` : ""}
+          ${safeUrl(r.source_url) ? `<section><h3>Source</h3><a class="source" href="${esc(r.source_url)}" target="_blank" rel="noopener">${esc(r.source_url)}</a></section>` : ""}
+        </article>`;
+      window.scrollTo(0, 0);
+
+      const el = document.getElementById("ing");
+      if (el) {
+        let html = "", section;
+        ingredients.forEach((i, idx) => {
+          if (i.section !== section) {
+            if (idx) html += "</ul>";
+            section = i.section;
+            html += (section ? `<h4>${esc(section)}</h4>` : "") + `<ul class="ingredients">`;
+          }
+          const amt = i.amount != null ? fmtAmount(Number(i.amount)) : "";
+          html += `<li><span class="qty">${esc([amt, i.unit].filter(Boolean).join(" "))}</span>
+            <span>${esc(i.name)}${i.note ? ` <span class="note">— ${esc(i.note)}</span>` : ""}</span></li>`;
+        });
+        el.innerHTML = html + "</ul>";
+      }
+    }
+
+    // ---------- routing ----------
+    function route() {
+      const m = location.hash.match(/^#\/r\/([\w-]+)/);
+      m ? renderDetail(m[1]) : renderList();
+    }
+
+    window.addEventListener("hashchange", route);
+    route();
+  </script>
+</body>
+</html>
