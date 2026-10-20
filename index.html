@@ -112,8 +112,8 @@
       font: 500 15px/1.6 var(--sans); color: var(--accent); font-variant-numeric: tabular-nums;
     }
     .notes { color: var(--muted); white-space: pre-line; }
-    .source { color: var(--accent); font-size: 14px; word-break: break-all; }
-    .source:hover { text-decoration: underline; }
+    .link { color: var(--accent); font-size: 14px; word-break: break-all; }
+    .link:hover { text-decoration: underline; }
 
     @media (max-width: 520px) {
       header { padding: 24px 0 18px; }
@@ -147,8 +147,6 @@
       return `<img src="${src}" alt="" />`;
     }
 
-    // Only link plain web addresses (blocks javascript: and similar).
-    const safeUrl = (u) => /^https?:\/\//i.test(u || "") ? u : null;
 
     const FRACTIONS = [[1/8,"⅛"],[1/4,"¼"],[1/3,"⅓"],[1/2,"½"],[2/3,"⅔"],[3/4,"¾"]];
     function fmtAmount(n) {
@@ -213,16 +211,18 @@
       app.innerHTML = header() + `<div class="empty">Loading…</div>`;
       const { data: r, error } = await db
         .from("recipes")
-        .select("id,title,description,notes,source_url,icon_svg, recipe_ingredients(*), recipe_steps(*)")
+        .select("id,title,description,notes,icon_svg, recipe_ingredients(*), recipe_steps(*)")
         .eq("id", id)
         .maybeSingle();
       if (error || !r) {
-        app.querySelector(".empty").innerHTML = `${esc(error?.message || "Recipe not found.")} <a class="source" href="#">Back</a>`;
+        app.querySelector(".empty").innerHTML = `${esc(error?.message || "Recipe not found.")} <a class="link" href="#">Back</a>`;
         return;
       }
 
       const ingredients = [...r.recipe_ingredients].sort((a, b) => a.position - b.position);
       const steps = [...r.recipe_steps].sort((a, b) => a.position - b.position);
+      // Notes may record where a recipe came from ("Source: …"); keep that off the site.
+      const notes = (r.notes || "").split("\n").filter((l) => !/^\s*source\s*:/i.test(l)).join("\n").trim();
 
       app.innerHTML = header() + `
         <article class="detail">
@@ -234,8 +234,7 @@
           </div>
           ${ingredients.length ? `<section><h3>Ingredients</h3><div id="ing"></div></section>` : ""}
           ${steps.length ? `<section><h3>Method</h3><ol class="steps">${steps.map((s) => `<li>${esc(s.instruction)}</li>`).join("")}</ol></section>` : ""}
-          ${r.notes ? `<section><h3>Notes</h3><p class="notes">${esc(r.notes)}</p></section>` : ""}
-          ${safeUrl(r.source_url) ? `<section><h3>Source</h3><a class="source" href="${esc(r.source_url)}" target="_blank" rel="noopener">${esc(r.source_url)}</a></section>` : ""}
+          ${notes ? `<section><h3>Notes</h3><p class="notes">${esc(notes)}</p></section>` : ""}
         </article>`;
       window.scrollTo(0, 0);
 

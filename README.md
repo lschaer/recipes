@@ -17,7 +17,7 @@ Three tables in the `public` schema:
 
 | Table                | Contents                                                       |
 | -------------------- | -------------------------------------------------------------- |
-| `recipes`            | title, description, notes, source URL, SVG icon, status, owner |
+| `recipes`            | title, description, notes, SVG icon, status, owner, source     |
 | `recipe_ingredients` | amount, unit, name, note, section, position                    |
 | `recipe_steps`       | instruction, position                                          |
 
@@ -27,7 +27,7 @@ Anonymous visitors get read-only access through row-level security:
 
 - Only recipes with `status = 'processed'` that belong to the owner's account are visible.
 - Ingredients and steps are visible only for those recipes.
-- Visitors can't read private columns of `recipes`, such as `user_id`, `source_text` and `source_image_path`. Only the columns the site displays are granted to the `anon` role.
+- Visitors can't read private columns of `recipes`, such as `user_id` and the recipe sources (`source_url`, `source_text`, `source_image_path`). Only the columns the site displays are granted to the `anon` role.
 - Visitors can't insert, update or delete anything.
 
 The key in `index.html` is the **publishable** key. It's meant to be public, and access is enforced by the policies above.
