@@ -9,7 +9,8 @@ A minimal, read-only recipe site. It's a single static page that loads recipes l
 - `index.html` is the whole app: HTML, CSS and plain JavaScript, with no build step.
 - On page load, the browser fetches recipes straight from Supabase using [supabase-js](https://github.com/supabase/supabase-js) and the project's publishable key.
 - New or edited recipes show up on the next page load. Nothing needs to be redeployed.
-- Routing uses the URL hash: `#/r/<recipe-id>` opens a recipe, and anything else shows the overview.
+- Routing uses the URL hash: `#/r/<recipe-id>` opens a recipe, `#/r/<recipe-id>/shop` opens its "Add to notes" screen, and anything else shows the overview.
+- **Add to notes** lets you tick the ingredients you're missing and sends them as a plain-text shopping list to the share sheet (e.g. Apple Notes). If sharing isn't available, the list is copied to the clipboard, or shown as selectable text if copying fails. The list is built in the browser from `recipe_ingredients`; nothing is stored.
 
 ## Database
 

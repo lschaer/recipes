@@ -115,9 +115,44 @@
     .link { color: var(--accent); font-size: 14px; word-break: break-all; }
     .link:hover { text-decoration: underline; }
 
+    /* Add to notes */
+    .pill {
+      display: inline-block; margin-top: 20px; padding: 8px 16px;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
+      font-size: 14px; transition: border-color .15s;
+    }
+    .pill:hover { border-color: var(--muted); }
+    .shop-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+    .shop-head h3 { margin: 0; }
+    .text-btn { background: none; border: 0; padding: 0; color: var(--accent); font-size: 14px; cursor: pointer; }
+    .ingredients li.pick { display: block; padding: 0; }
+    .pick label {
+      display: grid; grid-template-columns: 18px 96px 1fr; gap: 12px; align-items: start;
+      padding: 9px 0; cursor: pointer;
+    }
+    .pick input { width: 16px; height: 16px; margin-top: 4px; accent-color: var(--accent); cursor: pointer; }
+    .shop-actions {
+      position: sticky; bottom: 0; margin-top: 32px;
+      padding: 16px 0 calc(16px + env(safe-area-inset-bottom));
+      background: var(--bg); border-top: 1px solid var(--line);
+    }
+    .primary {
+      width: 100%; padding: 13px; border: 0; border-radius: 999px; cursor: pointer;
+      background: var(--text); color: var(--bg); font-weight: 500;
+    }
+    .primary:disabled { opacity: .35; cursor: default; }
+    .msg { color: var(--muted); font-size: 14px; text-align: center; margin-top: 10px; }
+    .msg:empty { display: none; }
+    .fallback {
+      display: block; width: 100%; min-height: 180px; margin-top: 24px; padding: 14px 16px;
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+      font: inherit; color: inherit; resize: vertical; outline: none;
+    }
+
     @media (max-width: 520px) {
       header { padding: 24px 0 18px; }
       .ingredients li { grid-template-columns: 76px 1fr; }
+      .pick label { grid-template-columns: 18px 76px 1fr; }
     }
   </style>
 </head>
@@ -149,14 +184,52 @@
 
 
     const FRACTIONS = [[1/8,"⅛"],[1/4,"¼"],[1/3,"⅓"],[1/2,"½"],[2/3,"⅔"],[3/4,"¾"]];
-    function fmtAmount(n) {
+    // sep goes between the whole number and the fraction: "1 ½" on the page, "1½" in copied lists.
+    function fmtAmount(n, sep = " ") {
       if (n == null || isNaN(n)) return "";
       const whole = Math.floor(n), frac = n - whole;
       if (frac < 0.04) return String(whole);
       if (frac > 0.96) return String(whole + 1);
       const hit = FRACTIONS.find(([v]) => Math.abs(v - frac) < 0.04);
-      if (hit && n < 20) return (whole ? whole + " " : "") + hit[1];
+      if (hit && n < 20) return (whole ? whole + sep : "") + hit[1];
       return String(Math.round(n * 10) / 10);
+    }
+
+    // Ingredients grouped by section in position order; a null section gets no label.
+    function ingredientGroups(ingredients, row) {
+      let html = "", section;
+      ingredients.forEach((i, idx) => {
+        if (idx === 0 || i.section !== section) {
+          if (idx) html += "</ul>";
+          section = i.section;
+          html += (section ? `<h4>${esc(section)}</h4>` : "") + `<ul class="ingredients">`;
+        }
+        html += row(i, idx);
+      });
+      return html ? html + "</ul>" : "";
+    }
+
+    const qtyText = (i) => [i.amount != null ? fmtAmount(Number(i.amount)) : "", i.unit].filter(Boolean).join(" ");
+    const nameHtml = (i) => `${esc(i.name)}${i.note ? ` <span class="note">— ${esc(i.note)}</span>` : ""}`;
+
+    // One shopping-list line: "<amount> <unit> <name> (<note>)", skipping empty parts.
+    const listLine = (i) =>
+      [i.amount != null ? fmtAmount(Number(i.amount), "") : "", i.unit, i.name]
+        .map((p) => String(p ?? "").trim()).filter(Boolean).join(" ") + (i.note ? ` (${i.note.trim()})` : "");
+
+    let current = null; // last recipe loaded, so the notes screen doesn't refetch it
+    async function loadRecipe(id) {
+      if (current?.id === id) return current;
+      const { data, error } = await db
+        .from("recipes")
+        .select("id,title,description,notes,icon_svg, recipe_ingredients(*), recipe_steps(*)")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) throw new Error("Recipe not found.");
+      data.recipe_ingredients.sort((a, b) => a.position - b.position);
+      data.recipe_steps.sort((a, b) => a.position - b.position);
+      return (current = data);
     }
 
     // ---------- views ----------
@@ -209,18 +282,15 @@
 
     async function renderDetail(id) {
       app.innerHTML = header() + `<div class="empty">Loading…</div>`;
-      const { data: r, error } = await db
-        .from("recipes")
-        .select("id,title,description,notes,icon_svg, recipe_ingredients(*), recipe_steps(*)")
-        .eq("id", id)
-        .maybeSingle();
-      if (error || !r) {
-        app.querySelector(".empty").innerHTML = `${esc(error?.message || "Recipe not found.")} <a class="link" href="#">Back</a>`;
+      let r;
+      try { r = await loadRecipe(id); }
+      catch (e) {
+        app.querySelector(".empty").innerHTML = `${esc(e.message)} <a class="link" href="#">Back</a>`;
         return;
       }
 
-      const ingredients = [...r.recipe_ingredients].sort((a, b) => a.position - b.position);
-      const steps = [...r.recipe_steps].sort((a, b) => a.position - b.position);
+      const ingredients = r.recipe_ingredients;
+      const steps = r.recipe_steps;
       // Notes may record where a recipe came from ("Source: …"); keep that off the site.
       const notes = (r.notes || "").split("\n").filter((l) => !/^\s*source\s*:/i.test(l)).join("\n").trim();
 
@@ -231,34 +301,108 @@
             <div class="icon">${iconImg(r.icon_svg)}</div>
             <h1>${esc(r.title || "Untitled")}</h1>
             ${r.description ? `<p class="lede">${esc(r.description)}</p>` : ""}
+            ${ingredients.length ? `<a class="pill" href="#/r/${r.id}/shop">Add to notes</a>` : ""}
           </div>
-          ${ingredients.length ? `<section><h3>Ingredients</h3><div id="ing"></div></section>` : ""}
+          ${ingredients.length ? `<section><h3>Ingredients</h3>${ingredientGroups(ingredients, (i) =>
+            `<li><span class="qty">${esc(qtyText(i))}</span><span>${nameHtml(i)}</span></li>`)}</section>` : ""}
           ${steps.length ? `<section><h3>Method</h3><ol class="steps">${steps.map((s) => `<li>${esc(s.instruction)}</li>`).join("")}</ol></section>` : ""}
           ${notes ? `<section><h3>Notes</h3><p class="notes">${esc(notes)}</p></section>` : ""}
         </article>`;
       window.scrollTo(0, 0);
+    }
 
-      const el = document.getElementById("ing");
-      if (el) {
-        let html = "", section;
-        ingredients.forEach((i, idx) => {
-          if (i.section !== section) {
-            if (idx) html += "</ul>";
-            section = i.section;
-            html += (section ? `<h4>${esc(section)}</h4>` : "") + `<ul class="ingredients">`;
-          }
-          const amt = i.amount != null ? fmtAmount(Number(i.amount)) : "";
-          html += `<li><span class="qty">${esc([amt, i.unit].filter(Boolean).join(" "))}</span>
-            <span>${esc(i.name)}${i.note ? ` <span class="note">— ${esc(i.note)}</span>` : ""}</span></li>`;
-        });
-        el.innerHTML = html + "</ul>";
+    // "What are you missing?" — tick ingredients, then share the list (e.g. to Apple Notes).
+    async function renderShop(id) {
+      app.innerHTML = header() + `<div class="empty">Loading…</div>`;
+      let r;
+      try { r = await loadRecipe(id); }
+      catch (e) {
+        app.querySelector(".empty").innerHTML = `${esc(e.message)} <a class="link" href="#">Back</a>`;
+        return;
       }
+      const ingredients = r.recipe_ingredients;
+      const title = r.title || "Untitled";
+
+      app.innerHTML = header() + `
+        <article class="detail">
+          <a class="back" href="#/r/${r.id}">← ${esc(title)}</a>
+          <div class="intro">
+            <h1>What are you missing?</h1>
+            <p class="lede">Tick what you need to buy.</p>
+          </div>
+          <div class="shop-head">
+            <h3>Ingredients</h3>
+            <button class="text-btn" id="toggle" type="button">Select all</button>
+          </div>
+          ${ingredientGroups(ingredients, (i, idx) => `
+            <li class="pick"><label>
+              <input type="checkbox" data-i="${idx}" />
+              <span class="qty">${esc(qtyText(i))}</span>
+              <span>${nameHtml(i)}</span>
+            </label></li>`)}
+          <textarea class="fallback" id="fallback" readonly hidden></textarea>
+          <div class="shop-actions">
+            <button class="primary" id="copy" type="button" disabled>Copy list (0)</button>
+            <p class="msg" id="msg" role="status"></p>
+          </div>
+        </article>`;
+      window.scrollTo(0, 0);
+
+      const boxes = [...app.querySelectorAll(".pick input")];
+      const toggle = document.getElementById("toggle");
+      const copy = document.getElementById("copy");
+      const msg = document.getElementById("msg");
+      const fallback = document.getElementById("fallback");
+      const picked = () => boxes.filter((b) => b.checked).map((b) => ingredients[b.dataset.i]);
+
+      const update = () => {
+        const n = picked().length;
+        copy.textContent = `Copy list (${n})`;
+        copy.disabled = n === 0;
+        toggle.textContent = n === boxes.length ? "Clear" : "Select all";
+      };
+      boxes.forEach((b) => (b.onchange = update));
+      toggle.onclick = () => {
+        const all = picked().length !== boxes.length;
+        boxes.forEach((b) => (b.checked = all));
+        update();
+      };
+
+      let msgTimer;
+      const flash = (text) => {
+        msg.textContent = text;
+        clearTimeout(msgTimer);
+        msgTimer = setTimeout(() => (msg.textContent = ""), 3000);
+      };
+
+      copy.onclick = async () => {
+        const text = [`Shopping list: ${title}`, ...picked().map(listLine)].join("\n");
+        fallback.hidden = true;
+        // 1. Share sheet (pick Notes on iOS). Closing the sheet is not an error.
+        if (navigator.share) {
+          try { await navigator.share({ text }); return; }
+          catch (e) { if (e.name === "AbortError") return; }
+        }
+        // 2. Clipboard.
+        try {
+          await navigator.clipboard.writeText(text);
+          flash("Copied to clipboard");
+          return;
+        } catch {}
+        // 3. Selectable text.
+        fallback.value = text;
+        fallback.hidden = false;
+        fallback.focus();
+        fallback.select();
+        flash("Couldn't copy automatically. Select the text above and copy it.");
+      };
     }
 
     // ---------- routing ----------
     function route() {
-      const m = location.hash.match(/^#\/r\/([\w-]+)/);
-      m ? renderDetail(m[1]) : renderList();
+      const m = location.hash.match(/^#\/r\/([\w-]+)(\/shop)?$/);
+      if (!m) return renderList();
+      m[2] ? renderShop(m[1]) : renderDetail(m[1]);
     }
 
     window.addEventListener("hashchange", route);
