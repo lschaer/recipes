@@ -5,10 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Recipes</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none' stroke='%23a8572c' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 22h48a24 24 0 0 1-48 0z'/%3E%3Cpath d='M24 56h16'/%3E%3C/svg%3E" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
+    /* Inter (SIL OFL, see assets/LICENSE-inter.txt), served from this site: no third-party font requests. */
+    @font-face {
+      font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap;
+      src: url(assets/inter-latin-ext-wght-normal.woff2) format("woff2-variations");
+      unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+    @font-face {
+      font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap;
+      src: url(assets/inter-latin-wght-normal.woff2) format("woff2-variations");
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
     :root {
       --bg: #fafaf8;
       --surface: #ffffff;
@@ -149,6 +158,8 @@
       font: inherit; color: inherit; resize: vertical; outline: none;
     }
 
+    .site-foot { color: var(--muted); font-size: 12px; text-align: center; padding: 8px 0 32px; }
+
     @media (max-width: 520px) {
       header { padding: 24px 0 18px; }
       .ingredients li { grid-template-columns: 76px 1fr; }
@@ -158,8 +169,9 @@
 </head>
 <body>
   <div class="wrap" id="app"></div>
+  <footer class="wrap site-foot">No cookies, no tracking. Hosted on GitHub Pages; recipes stored with Supabase (EU).</footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="assets/supabase-2.45.4.min.js"></script>
   <script>
     const SUPABASE_URL = "https://ysrvbbecbqwiuthphnfk.supabase.co";
     const SUPABASE_KEY = "sb_publishable_8dt1fN6NAxlA3YvqjWqkxg_NeKhxay7";
