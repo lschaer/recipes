@@ -117,12 +117,12 @@
 
     /* Add to notes */
     .pill {
-      display: inline-block; margin-top: 20px; padding: 8px 16px;
+      display: inline-block; padding: 8px 16px;
       background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
       font-size: 14px; transition: border-color .15s;
     }
     .pill:hover { border-color: var(--muted); }
-    .shop-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+    .shop-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
     .shop-head h3 { margin: 0; }
     .text-btn { background: none; border: 0; padding: 0; color: var(--accent); font-size: 14px; cursor: pointer; }
     .ingredients li.pick { display: block; padding: 0; }
@@ -301,9 +301,8 @@
             <div class="icon">${iconImg(r.icon_svg)}</div>
             <h1>${esc(r.title || "Untitled")}</h1>
             ${r.description ? `<p class="lede">${esc(r.description)}</p>` : ""}
-            ${ingredients.length ? `<a class="pill" href="#/r/${r.id}/shop">Add to notes</a>` : ""}
           </div>
-          ${ingredients.length ? `<section><h3>Ingredients</h3>${ingredientGroups(ingredients, (i) =>
+          ${ingredients.length ? `<section><div class="shop-head"><h3>Ingredients</h3><a class="pill" href="#/r/${r.id}/shop">Add to notes</a></div>${ingredientGroups(ingredients, (i) =>
             `<li><span class="qty">${esc(qtyText(i))}</span><span>${nameHtml(i)}</span></li>`)}</section>` : ""}
           ${steps.length ? `<section><h3>Method</h3><ol class="steps">${steps.map((s) => `<li>${esc(s.instruction)}</li>`).join("")}</ol></section>` : ""}
           ${notes ? `<section><h3>Notes</h3><p class="notes">${esc(notes)}</p></section>` : ""}
